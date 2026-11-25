@@ -37,6 +37,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -136,7 +137,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
         Scaffold(containerColor = Color(0xFFF3F6F3), topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF3F6F3)),
-                title = { Column { Text("Lista Inteligente", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge); Text("Gestão simples da sua obra", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078)) } },
+                title = { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Box(Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF28634D)), contentAlignment = Alignment.Center) { Icon(Icons.Default.Build, null, tint = Color.White, modifier = Modifier.size(23.dp)) }; Column { Text("Lista Inteligente", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge); Text("Tudo organizado na sua obra", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078)) } } },
                 actions = {
                     IconButton(onClick = { showNewWork = true; newWorkName = "" }) { Icon(Icons.Default.Add, "Criar obra") }
                     IconButton(onClick = {
@@ -162,6 +163,12 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Spacer(Modifier.height(2.dp))
+                Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF214D3A)), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
+                    Row(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF214D3A), Color(0xFF397456)))).padding(horizontal = 18.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) { Text("A sua obra, sob controlo", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium); Text("Materiais, ferramentas e custos num só lugar.", color = Color(0xFFE0EEE5), style = MaterialTheme.typography.bodySmall) }
+                        Box(Modifier.size(54.dp).clip(RoundedCornerShape(18.dp)).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) { Icon(Icons.Default.Build, null, tint = Color.White, modifier = Modifier.size(31.dp)) }
+                    }
+                }
                 Box {
                     Row(
                         Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(16.dp))
@@ -225,8 +232,9 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 100.dp)) {
                         items(visibleItems, key = { it.id }) { item ->
-                            Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
-                                Row(Modifier.padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Card(shape = RoundedCornerShape(19.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
+                                Row(Modifier.padding(horizontal = 11.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(if (item.bought) Color(0xFFEAF2ED) else if (section == 0) Color(0xFFFFF2E3) else Color(0xFFE8F0EB)), contentAlignment = Alignment.Center) { Icon(if (section == 0) Icons.Default.ShoppingCart else Icons.Default.Build, null, tint = if (section == 0) Color(0xFFB87935) else Color(0xFF28634D), modifier = Modifier.size(22.dp)) }
                                     Checkbox(checked = item.bought, onCheckedChange = { checked -> persist(materials.map { if (it.id == item.id) it.copy(bought = checked) else it }) })
                                     Column(Modifier.weight(1f)) {
                                         Text(item.name, fontWeight = FontWeight.SemiBold, color = if (item.bought) Color.Gray else Color(0xFF26352D))
