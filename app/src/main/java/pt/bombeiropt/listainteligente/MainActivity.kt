@@ -94,7 +94,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     }
     MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF315B46), secondary = Color(0xFFD18B43), background = Color(0xFFF5F3ED))) {
         Scaffold(containerColor = Color(0xFFF5F3ED), topBar = {
-            TopAppBar(title = { Column { Text("Lista Inteligente", fontWeight = FontWeight.Bold); Text("Materiais de construção", style = MaterialTheme.typography.labelSmall) } },
+            TopAppBar(title = { Text("Lista Inteligente", fontWeight = FontWeight.Bold) },
                 actions = { IconButton(onClick = {
                     val body = buildString { appendLine("LISTA: $listName"); appendLine("Material | Quantidade | Unidade | Preço/un. | Total"); materials.forEach { appendLine("${it.name} | ${it.quantity} | ${it.unit} | ${money.format(it.price)} | ${money.format(it.total)}") }; appendLine("TOTAL: ${money.format(materials.sumOf { it.total })}") }
                     val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_SUBJECT, "Lista de materiais - $listName"); putExtra(Intent.EXTRA_TEXT, body) }
@@ -113,17 +113,17 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             }
         }) { padding ->
             Column(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() }, label = { Text("Nome da obra / lista") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(3.dp))
+                OutlinedTextField(value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() }, label = { Text("Obra / lista") }, singleLine = true, modifier = Modifier.fillMaxWidth().height(56.dp))
+                Spacer(Modifier.height(5.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Summary("ARTIGOS", materials.size.toString())
                     Summary("POR COMPRAR", materials.count { !it.bought }.toString())
                     Summary("TOTAL", money.format(materials.sumOf { it.total }))
                 }
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Pesquisar material") })
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(5.dp))
+                OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth().height(54.dp), singleLine = true, label = { Text("Pesquisar material") })
+                Spacer(Modifier.height(3.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("Todos", "Por comprar", "Comprados").forEach { option ->
                         FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option) })
@@ -135,8 +135,8 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 100.dp)) {
                         items(materials.filter { (filter == "Todos" || (filter == "Comprados") == it.bought) && it.name.contains(query, true) }, key = { it.id }) { item ->
-                            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
-                                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFEFA)), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
+                                Row(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Checkbox(checked = item.bought, onCheckedChange = { checked -> persist(materials.map { if (it.id == item.id) it.copy(bought = checked) else it }) })
                                     Column(Modifier.weight(1f)) {
                                         Text(item.name, fontWeight = FontWeight.SemiBold, color = if (item.bought) Color.Gray else Color(0xFF26352D))
@@ -164,9 +164,9 @@ fun ListaApp(onSpeak: (String) -> Unit) {
 @Composable
 fun Summary(label: String, value: String) {
     Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(12.dp)) {
-        Column(Modifier.padding(horizontal = 10.dp, vertical = 9.dp)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+        Column(Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
+            Text(label, style = MaterialTheme.typography.labelSmall, color = Color(0xFF77766F), maxLines = 1)
+            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1)
         }
     }
 }
