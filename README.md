@@ -3,7 +3,9 @@
 Aplicação Android nativa para organizar materiais de construção e acompanhar compras e custos.
 
 ## Funcionalidades
-- Criar listas identificadas por obra ou projeto.
+- Criar e gerir várias obras/projetos em simultâneo, cada um com listas independentes.
+- Alternar entre obras sem misturar materiais, ferramentas, compras ou custos.
+- Migrar automaticamente a lista da versão anterior para a primeira obra, preservando os dados existentes.
 - Adicionar, editar e remover materiais.
 - Registar quantidade, unidade, categoria e preço unitário.
 - Calcular automaticamente o total por artigo e o orçamento global.
