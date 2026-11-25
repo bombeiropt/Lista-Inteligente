@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
@@ -163,37 +164,36 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Spacer(Modifier.height(2.dp))
-                Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF214D3A)), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
-                    Row(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF214D3A), Color(0xFF397456)))).padding(horizontal = 18.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) { Text("A sua obra, sob controlo", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium); Text("Materiais, ferramentas e custos num só lugar.", color = Color(0xFFE0EEE5), style = MaterialTheme.typography.bodySmall) }
-                        Box(Modifier.size(54.dp).clip(RoundedCornerShape(18.dp)).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) { Icon(Icons.Default.Build, null, tint = Color.White, modifier = Modifier.size(31.dp)) }
+                Box(Modifier.fillMaxWidth().height(88.dp)) {
+                    Canvas(Modifier.fillMaxSize()) {
+                        val w = size.width
+                        val h = size.height
+                        drawCircle(Color(0xFFDCE9DF), radius = h * 0.72f, center = androidx.compose.ui.geometry.Offset(w * 0.82f, h * 0.5f))
+                        drawRect(Color(0xFFB7CDBD).copy(alpha = 0.48f), topLeft = androidx.compose.ui.geometry.Offset(w * 0.70f, h * 0.30f), size = androidx.compose.ui.geometry.Size(w * 0.18f, h * 0.62f))
+                        drawLine(Color(0xFF6E927B).copy(alpha = 0.65f), androidx.compose.ui.geometry.Offset(w * 0.67f, h * 0.32f), androidx.compose.ui.geometry.Offset(w * 0.79f, h * 0.05f), strokeWidth = 4.dp.toPx())
+                        drawLine(Color(0xFF6E927B).copy(alpha = 0.65f), androidx.compose.ui.geometry.Offset(w * 0.79f, h * 0.05f), androidx.compose.ui.geometry.Offset(w * 0.91f, h * 0.32f), strokeWidth = 4.dp.toPx())
+                        for (i in 0..2) drawRect(Color(0xFF789984).copy(alpha = 0.55f), topLeft = androidx.compose.ui.geometry.Offset(w * (0.73f + i * 0.055f), h * 0.48f), size = androidx.compose.ui.geometry.Size(w * 0.025f, h * 0.16f))
+                        drawLine(Color(0xFF789984).copy(alpha = 0.45f), androidx.compose.ui.geometry.Offset(w * 0.62f, h * 0.92f), androidx.compose.ui.geometry.Offset(w * 0.98f, h * 0.92f), strokeWidth = 3.dp.toPx())
                     }
-                }
-                Box {
                     Row(
-                        Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(16.dp))
-                            .clickable { showWorksMenu = true }.padding(horizontal = 16.dp, vertical = 15.dp),
+                        Modifier.align(Alignment.Center).fillMaxWidth().padding(horizontal = 7.dp)
+                            .background(Color.White.copy(alpha = 0.91f), RoundedCornerShape(16.dp))
+                            .clickable { showWorksMenu = true }.padding(horizontal = 14.dp, vertical = 11.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(Modifier.weight(1f)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text("OBRA SELECIONADA", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078))
-                            Text(listName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = Color(0xFF20352B))
+                            Text(listName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = Color(0xFF20352B), maxLines = 1)
                             Text("${works.size} obra(s) registada(s)", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078))
                         }
                         Icon(Icons.Default.Build, "Escolher obra", tint = Color(0xFF28634D))
                     }
                     DropdownMenu(expanded = showWorksMenu, onDismissRequest = { showWorksMenu = false }) {
                         works.forEach { work ->
-                            DropdownMenuItem(
-                                text = { Text(work.name) },
-                                onClick = { activeWorkId = work.id; showWorksMenu = false }
-                            )
+                            DropdownMenuItem(text = { Text(work.name) }, onClick = { activeWorkId = work.id; showWorksMenu = false })
                         }
                         HorizontalDivider()
-                        DropdownMenuItem(
-                            text = { Text("+ Criar nova obra", color = Color(0xFF28634D), fontWeight = FontWeight.Bold) },
-                            onClick = { showWorksMenu = false; newWorkName = ""; showNewWork = true }
-                        )
+                        DropdownMenuItem(text = { Text("+ Criar nova obra", color = Color(0xFF28634D), fontWeight = FontWeight.Bold) }, onClick = { showWorksMenu = false; newWorkName = ""; showNewWork = true })
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
