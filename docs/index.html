@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#214d3b">
+<title>Lista Inteligente — Organize as suas obras</title>
+<meta name="description" content="Aplicação Android gratuita para organizar materiais, ferramentas, compras e custos de várias obras.">
+<style>
+:root{--green:#214d3b;--green2:#2f6a4e;--gold:#d99a50;--ink:#203329;--muted:#68786f;--paper:#f4f6f2;--white:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+a{color:inherit}.wrap{width:min(1080px,92%);margin:auto}.nav{display:flex;justify-content:space-between;align-items:center;padding:20px 0}.brand{font-weight:850;letter-spacing:-.5px;font-size:1.15rem;color:var(--green)}.brand span{color:var(--gold)}.nav a{text-decoration:none;font-weight:650;color:var(--green)}
+.hero{background:linear-gradient(110deg,rgba(17,43,31,.94),rgba(31,76,55,.78)),url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1800&q=85') center/cover;color:white;border-radius:28px;padding:clamp(38px,7vw,82px);min-height:420px;display:flex;align-items:center}
+.hero-content{max-width:650px}.eyebrow{color:#f0bd7e;text-transform:uppercase;font-size:.78rem;letter-spacing:2px;font-weight:800}.hero h1{font-size:clamp(2.3rem,6vw,4.4rem);line-height:1.04;letter-spacing:-2px;margin:12px 0 18px}.hero p{font-size:1.12rem;color:#e5eee8;max-width:570px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 22px;border-radius:13px;text-decoration:none;font-weight:800}.btn-primary{background:var(--gold);color:#1e2c22}.btn-ghost{border:1px solid #ffffff80;color:white}.hint{font-size:.84rem;color:#d5e1d9;margin-top:12px}
+section{padding:64px 0}.section-head{text-align:center;max-width:650px;margin:0 auto 30px}.section-head h2{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.15;margin:0 0 10px;color:var(--green)}.section-head p{color:var(--muted);margin:0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature{background:white;border:1px solid #e3e9e3;border-radius:18px;padding:23px}.ico{width:42px;height:42px;border-radius:12px;background:#eaf1eb;display:grid;place-items:center;font-size:1.25rem}.feature h3{margin:14px 0 5px;color:var(--green)}.feature p{margin:0;color:var(--muted);font-size:.95rem}
+.download{background:#e7eee8;border-radius:24px;padding:clamp(26px,5vw,48px);display:grid;grid-template-columns:1.3fr .7fr;gap:25px;align-items:center}.download h2{margin:0 0 8px;color:var(--green);font-size:2rem}.download p{color:var(--muted)}.download-box{background:white;border-radius:18px;padding:22px;text-align:center}.download-box .btn{width:100%;background:var(--green);color:white}.download-box small{display:block;color:var(--muted);margin-top:12px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.step{padding:20px;background:white;border-radius:16px}.num{font-weight:900;color:var(--gold);font-size:1.5rem}.step h3{margin:4px 0;color:var(--green)}.step p{margin:0;color:var(--muted);font-size:.93rem}
+footer{padding:28px 0;color:var(--muted);font-size:.85rem;border-top:1px solid #dfe6df}.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:760px){.grid,.steps{grid-template-columns:1fr}.download{grid-template-columns:1fr}.hero{min-height:440px}.nav{padding:15px 0}}
+</style>
+</head>
+<body>
+<header class="wrap nav"><div class="brand">LISTA <span>INTELIGENTE</span></div><a href="#descarregar">Descarregar aplicação ↓</a></header>
+<main class="wrap">
+<section class="hero">
+ <div class="hero-content">
+  <div class="eyebrow">A sua obra, sempre organizada</div>
+  <h1>Menos esquecimentos.<br>Mais controlo.</h1>
+  <p>Organize materiais, ferramentas, compras e custos num só lugar. Agora pode gerir várias obras, cada uma com a sua própria lista.</p>
+  <div class="actions"><a class="btn btn-primary" href="https://github.com/bombeiropt/Lista-Inteligente/releases">⬇ Descarregar para Android</a><a class="btn btn-ghost" href="#funcionalidades">Conhecer a aplicação</a></div>
+  <div class="hint">Aplicação Android · Download gratuito · Dados guardados no dispositivo</div>
+ </div>
+</section>
+<section id="funcionalidades">
+ <div class="section-head"><h2>Tudo separado. Tudo mais simples.</h2><p>Uma ferramenta prática para acompanhar o que falta comprar e o que é preciso levar para cada trabalho.</p></div>
+ <div class="grid">
+  <article class="feature"><div class="ico">🏠</div><h3>Várias obras</h3><p>Crie uma obra para cada cliente, divisão ou projeto. Alterne entre elas sem misturar informação.</p></article>
+  <article class="feature"><div class="ico">🧱</div><h3>Materiais e compras</h3><p>Registe quantidades, unidades, preços e acompanhe o que já foi comprado.</p></article>
+  <article class="feature"><div class="ico">🛠️</div><h3>Ferramentas e acessórios</h3><p>Tenha uma lista separada do equipamento que falta levar para a obra.</p></article>
+  <article class="feature"><div class="ico">🎙️</div><h3>Registo por voz</h3><p>Adicione artigos falando em português, através do reconhecimento de voz do Android.</p></article>
+  <article class="feature"><div class="ico">💶</div><h3>Controlo de custos</h3><p>Veja os totais dos materiais e acompanhe melhor o orçamento de cada trabalho.</p></article>
+  <article class="feature"><div class="ico">📤</div><h3>Partilhar listas</h3><p>Envie a lista da obra selecionada para outras aplicações ou para quem vai fazer as compras.</p></article>
+ </div>
+</section>
+<section id="descarregar">
+ <div class="download">
+  <div><div class="eyebrow" style="color:#a96d2d">Instalação Android</div><h2>Comece a organizar as suas obras.</h2><p>Descarregue a versão mais recente disponibilizada no GitHub. O ficheiro APK é instalado diretamente no seu telemóvel Android.</p><p><strong>Nota:</strong> se o Android apresentar um aviso por a aplicação não ter sido instalada através da Play Store, confirme que descarregou o ficheiro a partir do repositório oficial antes de prosseguir.</p></div>
+  <div class="download-box"><div style="font-size:2.3rem">📲</div><h3>Lista Inteligente</h3><a class="btn" href="https://github.com/bombeiropt/Lista-Inteligente/releases">Ver versões e descarregar APK</a><small>Abre a página oficial de versões e ficheiros de instalação.</small></div>
+ </div>
+</section>
+<section>
+ <div class="section-head"><h2>Como instalar</h2><p>São apenas três passos.</p></div>
+ <div class="steps">
+  <article class="step"><div class="num">01</div><h3>Descarregar</h3><p>Abra a página de versões e descarregue o APK da versão mais recente.</p></article>
+  <article class="step"><div class="num">02</div><h3>Abrir o ficheiro</h3><p>Toque no APK descarregado. Se necessário, autorize a instalação a partir dessa origem.</p></article>
+  <article class="step"><div class="num">03</div><h3>Começar a usar</h3><p>Abra a aplicação, crie as suas obras e adicione materiais e ferramentas.</p></article>
+ </div>
+</section>
+</main>
+<footer><div class="wrap foot"><span>© <span id="year"></span> Lista Inteligente</span><span><a href="https://github.com/bombeiropt/Lista-Inteligente">Projeto no GitHub</a> · Aplicação independente</span></div></footer>
+<script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+</body></html>
