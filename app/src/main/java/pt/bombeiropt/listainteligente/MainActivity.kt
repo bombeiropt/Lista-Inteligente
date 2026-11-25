@@ -59,14 +59,14 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("lista_inteligente", 0) }
     var listName by remember { mutableStateOf(prefs.getString("list_name", "Obra") ?: "Obra") }
-    var items by remember { mutableStateOf(loadItems(prefs.getString("items", "[]") ?: "[]")) }
+    var materials by remember { mutableStateOf(loadItems(prefs.getString("items", "[]") ?: "[]")) }
     var showAdd by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<MaterialItem?>(null) }
     var filter by remember { mutableStateOf("Todos") }
     var query by remember { mutableStateOf("") }
     var voiceMessage by remember { mutableStateOf("") }
     val money = remember { NumberFormat.getCurrencyInstance(Locale("pt", "PT")) }
-    fun persist(newItems: List<MaterialItem>) { items = newItems; prefs.edit().putString("items", saveItems(newItems)).apply() }
+    fun persist(newItems: List<MaterialItem>) { materials = newItems; prefs.edit().putString("items", saveItems(newItems)).apply() }
     fun handleVoice(text: String) {
         voiceMessage = text
         val cleaned = text.trim()
@@ -74,7 +74,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             val match = Regex("(?i)(?:adiciona|adicionar|junta|regista)\\s+(.+?)(?:\\s+(?:quantidade|qtd)\\s+(\\d+(?:[,.]\\d+)?))?$").find(cleaned)
             val name = match?.groupValues?.get(1)?.trim() ?: cleaned
             val qty = match?.groupValues?.get(2)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
-            if (items.none { it.name.equals(name, true) }) persist(items + MaterialItem(System.currentTimeMillis(), name.replaceFirstChar { it.uppercase() }, qty, "un", 0.0, "Geral"))
+            if (materials.none { it.name.equals(name, true) }) persist(materials + MaterialItem(System.currentTimeMillis(), name.replaceFirstChar { it.uppercase() }, qty, "un", 0.0, "Geral"))
             onSpeak("Registado: $name. Pode indicar o preço mais tarde.")
         }
     }
@@ -96,7 +96,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
         Scaffold(containerColor = Color(0xFFF5F3ED), topBar = {
             TopAppBar(title = { Column { Text("Lista Inteligente", fontWeight = FontWeight.Bold); Text("Materiais de construção", style = MaterialTheme.typography.labelSmall) } },
                 actions = { IconButton(onClick = {
-                    val body = buildString { appendLine("LISTA: $listName"); appendLine("Material | Quantidade | Unidade | Preço/un. | Total"); items.forEach { appendLine("${it.name} | ${it.quantity} | ${it.unit} | ${money.format(it.price)} | ${money.format(it.total)}") }; appendLine("TOTAL: ${money.format(items.sumOf { it.total })}") }
+                    val body = buildString { appendLine("LISTA: $listName"); appendLine("Material | Quantidade | Unidade | Preço/un. | Total"); materials.forEach { appendLine("${it.name} | ${it.quantity} | ${it.unit} | ${money.format(it.price)} | ${money.format(it.total)}") }; appendLine("TOTAL: ${money.format(materials.sumOf { it.total })}") }
                     val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_SUBJECT, "Lista de materiais - $listName"); putExtra(Intent.EXTRA_TEXT, body) }
                     context.startActivity(Intent.createChooser(send, "Partilhar lista"))
                 }) { Icon(Icons.Default.Share, "Partilhar") } }
@@ -117,9 +117,9 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 OutlinedTextField(value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() }, label = { Text("Nome da obra / lista") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Summary("ARTIGOS", items.size.toString())
-                    Summary("POR COMPRAR", items.count { !it.bought }.toString())
-                    Summary("TOTAL", money.format(items.sumOf { it.total }))
+                    Summary("ARTIGOS", materials.size.toString())
+                    Summary("POR COMPRAR", materials.count { !it.bought }.toString())
+                    Summary("TOTAL", money.format(materials.sumOf { it.total }))
                 }
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Pesquisar material") })
@@ -130,14 +130,14 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                     }
                 }
                 if (voiceMessage.isNotBlank()) Text("Ouvido: $voiceMessage", style = MaterialTheme.typography.bodySmall, color = Color(0xFF315B46))
-                if (items.isEmpty()) {
+                if (materials.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text("A sua lista está vazia", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold); Text("Adicione materiais manualmente ou através do microfone.") } }
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 100.dp)) {
-                        items(items.filter { (filter == "Todos" || (filter == "Comprados") == it.bought) && it.name.contains(query, true) }, key = { it.id }) { item ->
+                        items(materials.filter { (filter == "Todos" || (filter == "Comprados") == it.bought) && it.name.contains(query, true) }, key = { it.id }) { item ->
                             Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
                                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Checkbox(checked = item.bought, onCheckedChange = { checked -> persist(items.map { if (it.id == item.id) it.copy(bought = checked) else it }) })
+                                    Checkbox(checked = item.bought, onCheckedChange = { checked -> persist(materials.map { if (it.id == item.id) it.copy(bought = checked) else it }) })
                                     Column(Modifier.weight(1f)) {
                                         Text(item.name, fontWeight = FontWeight.SemiBold, color = if (item.bought) Color.Gray else Color(0xFF26352D))
                                         Text("${item.quantity} ${item.unit} · ${item.category}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
@@ -146,7 +146,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                                         Text(money.format(item.total), fontWeight = FontWeight.Bold)
                                         Text("Un. ${money.format(item.price)}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                                     }
-                                    IconButton(onClick = { persist(items.filterNot { it.id == item.id }) }) { Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFB34B42)) }
+                                    IconButton(onClick = { persist(materials.filterNot { it.id == item.id }) }) { Icon(Icons.Default.Delete, "Eliminar", tint = Color(0xFFB34B42)) }
                                 }
                             }
                         }
@@ -155,7 +155,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             }
         }
         if (showAdd) MaterialDialog(item = editing, onDismiss = { showAdd = false }, onSave = { saved ->
-            val updated = if (editing == null) items + saved else items.map { if (it.id == editing?.id) saved.copy(id = it.id, bought = it.bought) else it }
+            val updated = if (editing == null) materials + saved else materials.map { if (it.id == editing?.id) saved.copy(id = it.id, bought = it.bought) else it }
             persist(updated); showAdd = false
         })
     }
@@ -196,8 +196,8 @@ fun loadItems(raw: String): List<MaterialItem> = try {
     (0 until array.length()).map { i -> array.getJSONObject(i).let { MaterialItem(it.optLong("id"), it.optString("name"), it.optDouble("quantity", 1.0), it.optString("unit", "un"), it.optDouble("price", 0.0), it.optString("category", "Geral"), it.optBoolean("bought")) } }
 } catch (_: Exception) { emptyList() }
 
-fun saveItems(items: List<MaterialItem>): String {
+fun saveItems(materials: List<MaterialItem>): String {
     val array = JSONArray()
-    items.forEach { item -> array.put(JSONObject().put("id", item.id).put("name", item.name).put("quantity", item.quantity).put("unit", item.unit).put("price", item.price).put("category", item.category).put("bought", item.bought)) }
+    materials.forEach { item -> array.put(JSONObject().put("id", item.id).put("name", item.name).put("quantity", item.quantity).put("unit", item.unit).put("price", item.price).put("category", item.category).put("bought", item.bought)) }
     return array.toString()
 }
