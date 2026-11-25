@@ -26,6 +26,9 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,6 +70,14 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     var filter by remember { mutableStateOf("Todos") }
     var section by remember { mutableStateOf(0) }
     val sectionItems = materials.filter { if (section == 0) it.kind == "material" else it.kind == "tool" }
+    val visibleItems = sectionItems.filter {
+        val statusMatches = when (filter) {
+            "Por comprar", "Por levar" -> !it.bought
+            "Comprados", "Já levadas" -> it.bought
+            else -> true
+        }
+        statusMatches && it.name.contains(query, true)
+    }
     val sectionTitle = if (section == 0) "Materiais a comprar" else "Ferramentas e acessórios"
     val currentKind = if (section == 0) "material" else "tool"
     val filterOptions = if (section == 0) listOf("Todos", "Por comprar", "Comprados") else listOf("Todos", "Por levar", "Já levadas")
@@ -99,9 +110,15 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             speechLauncher.launch(intent)
         } else voiceMessage = "É necessária autorização do microfone para usar a voz."
     }
-    MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF315B46), secondary = Color(0xFFD18B43), background = Color(0xFFF5F3ED))) {
-        Scaffold(containerColor = Color(0xFFF5F3ED), topBar = {
-            TopAppBar(title = { Text("Lista Inteligente", fontWeight = FontWeight.Bold) },
+    MaterialTheme(colorScheme = lightColorScheme(
+        primary = Color(0xFF28634D), onPrimary = Color.White,
+        secondary = Color(0xFFD28B45), background = Color(0xFFF3F6F3),
+        surface = Color.White, onSurface = Color(0xFF20352B)
+    )) {
+        Scaffold(containerColor = Color(0xFFF3F6F3), topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF3F6F3)),
+                title = { Column { Text("Lista Inteligente", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge); Text("Gestão simples da sua obra", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078)) } },
                 actions = { IconButton(onClick = {
                     val exportItems = sectionItems
                     val body = buildString { appendLine("$sectionTitle - $listName"); if (section == 0) appendLine("Material | Quantidade | Unidade | Preço/un. | Total") else appendLine("Ferramenta/acessório | Quantidade | Estado"); exportItems.forEach { appendLine(if (section == 0) "${it.name} | ${it.quantity} | ${it.unit} | ${money.format(it.price)} | ${money.format(it.total)}" else "${it.name} | ${it.quantity} ${it.unit} | ${if (it.bought) "Já levado" else "Falta levar"}") }; if (section == 0) appendLine("TOTAL: ${money.format(exportItems.sumOf { it.total })}") }
@@ -122,7 +139,13 @@ fun ListaApp(onSpeak: (String) -> Unit) {
         }) { padding ->
             Column(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
                 Spacer(Modifier.height(3.dp))
-                OutlinedTextField(value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() }, label = { Text("Obra / lista") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() },
+                    label = { Text("Nome da obra") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color(0xFFD9E2DC), focusedBorderColor = Color(0xFF28634D), unfocusedContainerColor = Color.White, focusedContainerColor = Color.White)
+                )
                 Spacer(Modifier.height(5.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Summary(if (section == 0) "MATERIAIS" else "EQUIPAMENTO", sectionItems.size.toString())
@@ -147,9 +170,9 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(if (section == 0) "Ainda não há materiais" else "Ainda não há ferramentas ou acessórios", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold); Text(if (section == 0) "Adicione artigos que precisa de comprar." else "Registe o equipamento que precisa de levar para a obra.") } }
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 100.dp)) {
-                        items(sectionItems.filter { (filter == "Todos" || (if (section == 0) filter == "Comprados" else filter == "Já levadas") == it.bought) && it.name.contains(query, true) }, key = { it.id }) { item ->
-                            Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFEFA)), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
-                                Row(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        items(visibleItems, key = { it.id }) { item ->
+                            Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
+                                Row(Modifier.padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Checkbox(checked = item.bought, onCheckedChange = { checked -> persist(materials.map { if (it.id == item.id) it.copy(bought = checked) else it }) })
                                     Column(Modifier.weight(1f)) {
                                         Text(item.name, fontWeight = FontWeight.SemiBold, color = if (item.bought) Color.Gray else Color(0xFF26352D))
