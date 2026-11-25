@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -25,6 +26,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Build
@@ -137,29 +141,65 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 FloatingActionButton(onClick = { editing = null; showAdd = true }, containerColor = Color(0xFF315B46), contentColor = Color.White) { Icon(Icons.Default.Add, if (section == 0) "Adicionar material" else "Adicionar ferramenta") }
             }
         }) { padding ->
-            Column(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
-                Spacer(Modifier.height(3.dp))
+            Column(
+                Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Spacer(Modifier.height(2.dp))
                 OutlinedTextField(
-                    value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() },
-                    label = { Text("Nome da obra") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+                    value = listName,
+                    onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() },
+                    label = { Text("Nome da obra") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 62.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color(0xFFD9E2DC), focusedBorderColor = Color(0xFF28634D), unfocusedContainerColor = Color.White, focusedContainerColor = Color.White)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color(0xFFD9E2DC),
+                        focusedBorderColor = Color(0xFF28634D),
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White
+                    )
                 )
-                Spacer(Modifier.height(5.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Summary(if (section == 0) "MATERIAIS" else "EQUIPAMENTO", sectionItems.size.toString())
-                    Summary(if (section == 0) "POR COMPRAR" else "POR LEVAR", sectionItems.count { !it.bought }.toString())
-                    Summary(if (section == 0) "TOTAL" else "LEVADOS", if (section == 0) money.format(sectionItems.sumOf { it.total }) else sectionItems.count { it.bought }.toString())
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Summary(if (section == 0) "ARTIGOS" else "EQUIPAMENTO", sectionItems.size.toString(), Modifier.weight(1f))
+                    Summary(if (section == 0) "POR COMPRAR" else "POR LEVAR", sectionItems.count { !it.bought }.toString(), Modifier.weight(1f))
+                    Summary(if (section == 0) "TOTAL" else "LEVADOS", if (section == 0) money.format(sectionItems.sumOf { it.total }) else sectionItems.count { it.bought }.toString(), Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(5.dp))
-                TabRow(selectedTabIndex = section) {
-                    Tab(selected = section == 0, onClick = { section = 0; query = ""; filter = "Todos" }, text = { Text("Materiais a comprar") })
-                    Tab(selected = section == 1, onClick = { section = 1; query = ""; filter = "Todos" }, text = { Text("Ferramentas e acessórios") })
+                Row(
+                    Modifier.fillMaxWidth().background(Color(0xFFE5EEE8), RoundedCornerShape(16.dp)).padding(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    listOf("Materiais", "Ferramentas").forEachIndexed { index, label ->
+                        val selected = section == index
+                        Row(
+                            Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
+                                .background(if (selected) Color.White else Color.Transparent)
+                                .clickable { section = index; query = ""; filter = "Todos" }
+                                .padding(horizontal = 6.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(if (index == 0) Icons.Default.ShoppingCart else Icons.Default.Build, null, tint = Color(0xFF28634D), modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(label, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, color = Color(0xFF254C3A), maxLines = 1)
+                        }
+                    }
                 }
-                Spacer(Modifier.height(5.dp))
-                OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(if (section == 0) "Pesquisar material" else "Pesquisar ferramenta") })
-                Spacer(Modifier.height(3.dp))
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
+                    singleLine = true,
+                    label = { Text(if (section == 0) "Pesquisar material" else "Pesquisar ferramenta") },
+                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFF718078)) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color(0xFFD9E2DC),
+                        focusedBorderColor = Color(0xFF28634D),
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White
+                    )
+                )
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     filterOptions.forEach { option ->
                         FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option, maxLines = 1) })
@@ -197,15 +237,19 @@ fun ListaApp(onSpeak: (String) -> Unit) {
 }
 
 @Composable
-fun Summary(label: String, value: String) {
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(12.dp)) {
-        Column(Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = Color(0xFF77766F), maxLines = 1)
-            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+fun Summary(label: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 11.dp)) {
+            Text(label, style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078), maxLines = 1)
+            Text(value, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1, color = Color(0xFF20352B))
         }
     }
 }
-
 @Composable
 fun MaterialDialog(item: MaterialItem?, kind: String, onDismiss: () -> Unit, onSave: (MaterialItem) -> Unit) {
     var name by remember(item) { mutableStateOf(item?.name ?: "") }
