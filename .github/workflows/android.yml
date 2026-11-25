@@ -38,6 +38,10 @@ jobs:
           fi
       - name: Build signed release APK
         if: steps.signing.outputs.ready == 'true'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle assembleRelease
       - name: Build debug APK (temporary fallback)
         if: steps.signing.outputs.ready != 'true'
