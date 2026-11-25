@@ -61,8 +61,20 @@ class MainActivity : ComponentActivity() {
     private var tts: TextToSpeech? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        tts = TextToSpeech(this) { status -> if (status == TextToSpeech.SUCCESS) tts?.language = Locale("pt", "PT") }
-        setContent { ListaApp(onSpeak = { tts?.speak(it, TextToSpeech.QUEUE_FLUSH, null, "lista") }) }
+        try {
+            tts = TextToSpeech(this) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    try { tts?.language = Locale("pt", "PT") } catch (_: Exception) { }
+                }
+            }
+        } catch (_: Exception) {
+            tts = null
+        }
+        setContent {
+            ListaApp(onSpeak = { message ->
+                try { tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "lista") } catch (_: Exception) { }
+            })
+        }
     }
     override fun onDestroy() { tts?.stop(); tts?.shutdown(); super.onDestroy() }
 }
@@ -72,9 +84,19 @@ class MainActivity : ComponentActivity() {
 fun ListaApp(onSpeak: (String) -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("lista_inteligente", 0) }
-    var works by remember { mutableStateOf(loadWorks(prefs.getString("works", "") ?: "", prefs.getString("list_name", "Obra") ?: "Obra", prefs.getString("items", "[]") ?: "[]")) }
-    var activeWorkId by remember { mutableStateOf(works.first().id) }
-    val activeWork = works.firstOrNull { it.id == activeWorkId } ?: works.first()
+    var works by remember {
+        mutableStateOf(
+            loadWorks(
+                prefs.getString("works", "") ?: "",
+                prefs.getString("list_name", "Obra") ?: "Obra",
+                prefs.getString("items", "[]") ?: "[]"
+            ).ifEmpty { listOf(WorkProject(1L, "Obra", emptyList())) }
+        )
+    }
+    var activeWorkId by remember { mutableStateOf(works.firstOrNull()?.id ?: 1L) }
+    val activeWork = works.firstOrNull { it.id == activeWorkId }
+        ?: works.firstOrNull()
+        ?: WorkProject(1L, "Obra", emptyList())
     var listName by remember(activeWorkId) { mutableStateOf(activeWork.name) }
     var materials by remember(activeWorkId) { mutableStateOf(activeWork.items) }
     var showWorksMenu by remember { mutableStateOf(false) }
