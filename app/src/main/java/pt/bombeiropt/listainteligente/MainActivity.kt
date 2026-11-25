@@ -48,6 +48,8 @@ import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.Locale
 
+data class WorkProject(val id: Long, val name: String, val items: List<MaterialItem>)
+
 data class MaterialItem(val id: Long, val name: String, val quantity: Double, val unit: String, val price: Double, val category: String, val bought: Boolean = false, val kind: String = "material") {
     val total get() = quantity * price
 }
@@ -67,8 +69,14 @@ class MainActivity : ComponentActivity() {
 fun ListaApp(onSpeak: (String) -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("lista_inteligente", 0) }
-    var listName by remember { mutableStateOf(prefs.getString("list_name", "Obra") ?: "Obra") }
-    var materials by remember { mutableStateOf(loadItems(prefs.getString("items", "[]") ?: "[]")) }
+    var works by remember { mutableStateOf(loadWorks(prefs.getString("works", "") ?: "", prefs.getString("list_name", "Obra") ?: "Obra", prefs.getString("items", "[]") ?: "[]")) }
+    var activeWorkId by remember { mutableStateOf(works.first().id) }
+    val activeWork = works.firstOrNull { it.id == activeWorkId } ?: works.first()
+    var listName by remember(activeWorkId) { mutableStateOf(activeWork.name) }
+    var materials by remember(activeWorkId) { mutableStateOf(activeWork.items) }
+    var showWorksMenu by remember { mutableStateOf(false) }
+    var showNewWork by remember { mutableStateOf(false) }
+    var newWorkName by remember { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<MaterialItem?>(null) }
     var filter by remember { mutableStateOf("Todos") }
@@ -88,7 +96,15 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     val filterOptions = if (section == 0) listOf("Todos", "Por comprar", "Comprados") else listOf("Todos", "Por levar", "Já levadas")
     var voiceMessage by remember { mutableStateOf("") }
     val money = remember { NumberFormat.getCurrencyInstance(Locale("pt", "PT")) }
-    fun persist(newItems: List<MaterialItem>) { materials = newItems; prefs.edit().putString("items", saveItems(newItems)).apply() }
+    fun persistWorks(newWorks: List<WorkProject>) {
+        works = newWorks
+        prefs.edit().putString("works", saveWorks(newWorks)).apply()
+    }
+    fun persist(newItems: List<MaterialItem>) {
+        materials = newItems
+        persistWorks(works.map { if (it.id == activeWorkId) it.copy(name = listName, items = newItems) else it })
+        prefs.edit().putString("items", saveItems(newItems)).putString("list_name", listName).apply()
+    }
     fun handleVoice(text: String) {
         voiceMessage = text
         val cleaned = text.trim()
@@ -123,7 +139,9 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF3F6F3)),
                 title = { Column { Text("Lista Inteligente", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge); Text("Gestão simples da sua obra", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078)) } },
-                actions = { IconButton(onClick = {
+                actions = {
+                    IconButton(onClick = { showNewWork = true; newWorkName = "" }) { Icon(Icons.Default.Add, "Criar obra") }
+                    IconButton(onClick = {
                     val exportItems = sectionItems
                     val body = buildString { appendLine("$sectionTitle - $listName"); if (section == 0) appendLine("Material | Quantidade | Unidade | Preço/un. | Total") else appendLine("Ferramenta/acessório | Quantidade | Estado"); exportItems.forEach { appendLine(if (section == 0) "${it.name} | ${it.quantity} | ${it.unit} | ${money.format(it.price)} | ${money.format(it.total)}" else "${it.name} | ${it.quantity} ${it.unit} | ${if (it.bought) "Já levado" else "Falta levar"}") }; if (section == 0) appendLine("TOTAL: ${money.format(exportItems.sumOf { it.total })}") }
                     val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_SUBJECT, "$sectionTitle - $listName"); putExtra(Intent.EXTRA_TEXT, body) }
@@ -146,20 +164,33 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Spacer(Modifier.height(2.dp))
-                OutlinedTextField(
-                    value = listName,
-                    onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() },
-                    label = { Text("Nome da obra") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 62.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(0xFFD9E2DC),
-                        focusedBorderColor = Color(0xFF28634D),
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
-                    )
-                )
+                Box {
+                    Row(
+                        Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(16.dp))
+                            .clickable { showWorksMenu = true }.padding(horizontal = 16.dp, vertical = 15.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text("OBRA SELECIONADA", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078))
+                            Text(listName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = Color(0xFF20352B))
+                            Text("${works.size} obra(s) registada(s)", style = MaterialTheme.typography.labelSmall, color = Color(0xFF718078))
+                        }
+                        Icon(Icons.Default.Build, "Escolher obra", tint = Color(0xFF28634D))
+                    }
+                    DropdownMenu(expanded = showWorksMenu, onDismissRequest = { showWorksMenu = false }) {
+                        works.forEach { work ->
+                            DropdownMenuItem(
+                                text = { Text(work.name) },
+                                onClick = { activeWorkId = work.id; showWorksMenu = false }
+                            )
+                        }
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("+ Criar nova obra", color = Color(0xFF28634D), fontWeight = FontWeight.Bold) },
+                            onClick = { showWorksMenu = false; newWorkName = ""; showNewWork = true }
+                        )
+                    }
+                }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Summary(if (section == 0) "ARTIGOS" else "EQUIPAMENTO", sectionItems.size.toString(), Modifier.weight(1f))
                     Summary(if (section == 0) "POR COMPRAR" else "POR LEVAR", sectionItems.count { !it.bought }.toString(), Modifier.weight(1f))
@@ -229,6 +260,36 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 }
             }
         }
+        if (showNewWork) {
+            AlertDialog(
+                onDismissRequest = { showNewWork = false },
+                title = { Text("Criar nova obra") },
+                text = {
+                    OutlinedTextField(
+                        value = newWorkName,
+                        onValueChange = { newWorkName = it },
+                        label = { Text("Nome da obra") },
+                        placeholder = { Text("Ex.: Remodelação da cozinha") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val name = newWorkName.trim()
+                        if (name.isNotBlank()) {
+                            val created = WorkProject(System.currentTimeMillis(), name, emptyList())
+                            persistWorks(works + created)
+                            activeWorkId = created.id
+                            showNewWork = false
+                            section = 0
+                            filter = "Todos"
+                            query = ""
+                        }
+                    }) { Text("Criar obra") }
+                },
+                dismissButton = { TextButton(onClick = { showNewWork = false }) { Text("Cancelar") } }
+            )
+        }
         if (showAdd) MaterialDialog(item = editing, kind = if (section == 0) "material" else "tool", onDismiss = { showAdd = false }, onSave = { saved ->
             val updated = if (editing == null) materials + saved else materials.map { if (it.id == editing?.id) saved.copy(id = it.id, bought = it.bought) else it }
             persist(updated); showAdd = false
@@ -282,6 +343,27 @@ fun inferItemKind(name: String, storedKind: String): String {
         "pincel", "esquadro", "torquês", "grampeador"
     )
     return if (toolTerms.any { name.contains(it, ignoreCase = true) }) "tool" else storedKind
+}
+
+fun loadWorks(raw: String, legacyName: String, legacyItems: String): List<WorkProject> = try {
+    if (raw.isBlank()) listOf(WorkProject(1L, legacyName.ifBlank { "Obra" }, loadItems(legacyItems)))
+    else {
+        val array = JSONArray(raw)
+        (0 until array.length()).map { i ->
+            val obj = array.getJSONObject(i)
+            WorkProject(obj.optLong("id", System.currentTimeMillis() + i), obj.optString("name", "Obra ${i + 1}"), loadItems(obj.optString("items", "[]")))
+        }.ifEmpty { listOf(WorkProject(1L, "Obra", emptyList())) }
+    }
+} catch (_: Exception) {
+    listOf(WorkProject(1L, legacyName.ifBlank { "Obra" }, loadItems(legacyItems)))
+}
+
+fun saveWorks(works: List<WorkProject>): String {
+    val array = JSONArray()
+    works.forEach { work ->
+        array.put(JSONObject().put("id", work.id).put("name", work.name).put("items", JSONArray(saveItems(work.items))))
+    }
+    return array.toString()
 }
 
 fun loadItems(raw: String): List<MaterialItem> = try {
