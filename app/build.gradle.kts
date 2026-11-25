@@ -3,6 +3,12 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val releaseStoreFile = rootProject.file("release.keystore")
+val releaseStorePassword = System.getenv("KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("KEY_ALIAS")
+val releaseKeyPassword = System.getenv("KEY_PASSWORD")
+
 android {
     namespace = "pt.bombeiropt.listainteligente"
     compileSdk = 35
@@ -10,8 +16,24 @@ android {
         applicationId = "pt.bombeiropt.listainteligente"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
+        versionName = "1.0.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
+    }
+    signingConfigs {
+        create("release") {
+            if (releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null) {
+                storeFile = releaseStoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
     }
     buildFeatures { compose = true }
     compileOptions {
