@@ -72,6 +72,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     var showAdd by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<MaterialItem?>(null) }
     var filter by remember { mutableStateOf("Todos") }
+    var query by remember { mutableStateOf("") }
     var section by remember { mutableStateOf(0) }
     val sectionItems = materials.filter { if (section == 0) it.kind == "material" else it.kind == "tool" }
     val visibleItems = sectionItems.filter {
