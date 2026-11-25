@@ -89,7 +89,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             "Comprados", "Já levadas" -> it.bought
             else -> true
         }
-        statusMatches && it.name.contains(query, true)
+        statusMatches && (section != 0 || it.name.contains(query, true))
     }
     val sectionTitle = if (section == 0) "Materiais a comprar" else "Ferramentas e acessórios"
     val currentKind = if (section == 0) "material" else "tool"
@@ -216,21 +216,23 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
-                    singleLine = true,
-                    label = { Text(if (section == 0) "Pesquisar material" else "Pesquisar ferramenta") },
-                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFF718078)) },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(0xFFD9E2DC),
-                        focusedBorderColor = Color(0xFF28634D),
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                if (section == 0) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
+                        singleLine = true,
+                        label = { Text("Pesquisar material") },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFF718078)) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFD9E2DC),
+                            focusedBorderColor = Color(0xFF28634D),
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White
+                        )
                     )
-                )
+                }
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     filterOptions.forEach { option ->
                         FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option, maxLines = 1) })
