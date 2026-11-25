@@ -86,7 +86,6 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     val sectionTitle = if (section == 0) "Materiais a comprar" else "Ferramentas e acessórios"
     val currentKind = if (section == 0) "material" else "tool"
     val filterOptions = if (section == 0) listOf("Todos", "Por comprar", "Comprados") else listOf("Todos", "Por levar", "Já levadas")
-    var query by remember { mutableStateOf("") }
     var voiceMessage by remember { mutableStateOf("") }
     val money = remember { NumberFormat.getCurrencyInstance(Locale("pt", "PT")) }
     fun persist(newItems: List<MaterialItem>) { materials = newItems; prefs.edit().putString("items", saveItems(newItems)).apply() }
