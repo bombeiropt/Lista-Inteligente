@@ -203,9 +203,23 @@ fun MaterialDialog(item: MaterialItem?, kind: String, onDismiss: () -> Unit, onS
     }, confirmButton = { TextButton(onClick = { if (name.isNotBlank()) onSave(MaterialItem(item?.id ?: System.currentTimeMillis(), name.trim(), quantity.replace(",", ".").toDoubleOrNull() ?: 1.0, unit.ifBlank { "un" }, price.replace(",", ".").toDoubleOrNull() ?: 0.0, category.ifBlank { "Geral" }, kind = kind)) }) { Text("Guardar") } }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } })
 }
 
+fun inferItemKind(name: String, storedKind: String): String {
+    if (storedKind == "tool") return "tool"
+    val toolTerms = listOf(
+        "lixadora", "berbequim", "furadeira", "martelo", "chave de fendas",
+        "chave inglesa", "alicate", "serra", "rebarbadora", "aparafusadora",
+        "escadote", "extensão elétrica", "nivel", "nível", "fita métrica",
+        "trena", "plaina", "formão", "broca", "disco de corte",
+        "carrinho de mão", "pá", "enxada", "colher de pedreiro",
+        "talocha", "espátula", "pistola de silicone", "rolo de pintura",
+        "pincel", "esquadro", "torquês", "grampeador"
+    )
+    return if (toolTerms.any { name.contains(it, ignoreCase = true) }) "tool" else storedKind
+}
+
 fun loadItems(raw: String): List<MaterialItem> = try {
     val array = JSONArray(raw)
-    (0 until array.length()).map { i -> array.getJSONObject(i).let { MaterialItem(it.optLong("id"), it.optString("name"), it.optDouble("quantity", 1.0), it.optString("unit", "un"), it.optDouble("price", 0.0), it.optString("category", "Geral"), it.optBoolean("bought"), it.optString("kind", "material")) } }
+    (0 until array.length()).map { i -> array.getJSONObject(i).let { MaterialItem(it.optLong("id"), it.optString("name"), it.optDouble("quantity", 1.0), it.optString("unit", "un"), it.optDouble("price", 0.0), it.optString("category", "Geral"), it.optBoolean("bought"), inferItemKind(it.optString("name"), it.optString("kind", "material"))) } }
 } catch (_: Exception) { emptyList() }
 
 fun saveItems(materials: List<MaterialItem>): String {
