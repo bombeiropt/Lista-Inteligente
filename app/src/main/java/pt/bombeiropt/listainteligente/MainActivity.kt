@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Build
@@ -80,7 +79,6 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     var showAdd by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<MaterialItem?>(null) }
     var filter by remember { mutableStateOf("Todos") }
-    var query by remember { mutableStateOf("") }
     var section by remember { mutableStateOf(0) }
     val sectionItems = materials.filter { if (section == 0) it.kind == "material" else it.kind == "tool" }
     val visibleItems = sectionItems.filter {
@@ -89,7 +87,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             "Comprados", "Já levadas" -> it.bought
             else -> true
         }
-        statusMatches && (section != 0 || it.name.contains(query, true))
+        statusMatches
     }
     val sectionTitle = if (section == 0) "Materiais a comprar" else "Ferramentas e acessórios"
     val currentKind = if (section == 0) "material" else "tool"
@@ -205,7 +203,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                         Row(
                             Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
                                 .background(if (selected) Color.White else Color.Transparent)
-                                .clickable { section = index; query = ""; filter = "Todos" }
+                                .clickable { section = index; filter = "Todos" }
                                 .padding(horizontal = 6.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
@@ -215,23 +213,6 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                             Text(label, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, color = Color(0xFF254C3A), maxLines = 1)
                         }
                     }
-                }
-                if (section == 0) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
-                        singleLine = true,
-                        label = { Text("Pesquisar material") },
-                        leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFF718078)) },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color(0xFFD9E2DC),
-                            focusedBorderColor = Color(0xFF28634D),
-                            unfocusedContainerColor = Color.White,
-                            focusedContainerColor = Color.White
-                        )
-                    )
                 }
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     filterOptions.forEach { option ->
@@ -285,7 +266,6 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                             showNewWork = false
                             section = 0
                             filter = "Todos"
-                            query = ""
                         }
                     }) { Text("Criar obra") }
                 },
