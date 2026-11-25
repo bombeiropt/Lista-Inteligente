@@ -20,13 +20,43 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Build debug APK
+      - name: Check release signing secrets
+        id: signing
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [[ -n "$KEYSTORE_BASE64" && -n "$KEYSTORE_PASSWORD" && -n "$KEY_ALIAS" && -n "$KEY_PASSWORD" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Release signing is not configured. Building a debug APK only."
+          fi
+      - name: Build signed release APK
+        if: steps.signing.outputs.ready == 'true'
+        run: gradle assembleRelease
+      - name: Build debug APK (temporary fallback)
+        if: steps.signing.outputs.ready != 'true'
         run: gradle assembleDebug
-      - name: Publish APK as GitHub release
+      - name: Publish signed release APK
+        if: steps.signing.outputs.ready == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-build-${{ github.run_number }}
-          name: Lista Inteligente - APK build ${{ github.run_number }}
-          body: APK de instalação da Lista Inteligente, gerado automaticamente pelo GitHub Actions.
+          name: Lista Inteligente - versão final ${{ github.run_number }}
+          body: APK release assinado digitalmente para instalação e atualização.
+          prerelease: false
+          files: app/build/outputs/apk/release/app-release.apk
+      - name: Publish temporary debug APK
+        if: steps.signing.outputs.ready != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-build-${{ github.run_number }}
+          name: Lista Inteligente - compilação de teste ${{ github.run_number }}
+          body: Compilação temporária de teste. A versão final assinada ainda não está configurada.
           prerelease: true
           files: app/build/outputs/apk/debug/app-debug.apk
