@@ -13,9 +13,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -66,6 +68,8 @@ fun ListaApp(onSpeak: (String) -> Unit) {
     var section by remember { mutableStateOf(0) }
     val sectionItems = materials.filter { if (section == 0) it.kind == "material" else it.kind == "tool" }
     val sectionTitle = if (section == 0) "Materiais a comprar" else "Ferramentas e acessórios"
+    val currentKind = if (section == 0) "material" else "tool"
+    val filterOptions = if (section == 0) listOf("Todos", "Por comprar", "Comprados") else listOf("Todos", "Por levar", "Já levadas")
     var query by remember { mutableStateOf("") }
     var voiceMessage by remember { mutableStateOf("") }
     val money = remember { NumberFormat.getCurrencyInstance(Locale("pt", "PT")) }
@@ -77,7 +81,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
             val match = Regex("(?i)(?:adiciona|adicionar|junta|regista)\\s+(.+?)(?:\\s+(?:quantidade|qtd)\\s+(\\d+(?:[,.]\\d+)?))?$").find(cleaned)
             val name = match?.groupValues?.get(1)?.trim() ?: cleaned
             val qty = match?.groupValues?.get(2)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
-            if (materials.none { it.name.equals(name, true) }) persist(materials + MaterialItem(System.currentTimeMillis(), name.replaceFirstChar { it.uppercase() }, qty, "un", 0.0, "Geral"))
+            if (materials.none { it.kind == currentKind && it.name.equals(name, true) }) persist(materials + MaterialItem(System.currentTimeMillis(), name.replaceFirstChar { it.uppercase() }, qty, "un", 0.0, "Geral", kind = currentKind))
             onSpeak("Registado: $name. Pode indicar o preço mais tarde.")
         }
     }
@@ -118,7 +122,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
         }) { padding ->
             Column(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
                 Spacer(Modifier.height(3.dp))
-                OutlinedTextField(value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() }, label = { Text("Obra / lista") }, singleLine = true, modifier = Modifier.fillMaxWidth().height(56.dp))
+                OutlinedTextField(value = listName, onValueChange = { listName = it; prefs.edit().putString("list_name", it).apply() }, label = { Text("Obra / lista") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(5.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Summary(if (section == 0) "MATERIAIS" else "EQUIPAMENTO", sectionItems.size.toString())
@@ -131,11 +135,11 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                     Tab(selected = section == 1, onClick = { section = 1; query = ""; filter = "Todos" }, text = { Text("Ferramentas e acessórios") })
                 }
                 Spacer(Modifier.height(5.dp))
-                OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth().height(54.dp), singleLine = true, label = { Text(if (section == 0) "Pesquisar material" else "Pesquisar ferramenta") })
+                OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(if (section == 0) "Pesquisar material" else "Pesquisar ferramenta") })
                 Spacer(Modifier.height(3.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Todos", "Por comprar", "Comprados").forEach { option ->
-                        FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option) })
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    filterOptions.forEach { option ->
+                        FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option, maxLines = 1) })
                     }
                 }
                 if (voiceMessage.isNotBlank()) Text("Ouvido: $voiceMessage", style = MaterialTheme.typography.bodySmall, color = Color(0xFF315B46))
@@ -143,7 +147,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(if (section == 0) "Ainda não há materiais" else "Ainda não há ferramentas ou acessórios", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold); Text(if (section == 0) "Adicione artigos que precisa de comprar." else "Registe o equipamento que precisa de levar para a obra.") } }
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 100.dp)) {
-                        items(sectionItems.filter { (filter == "Todos" || (filter == "Comprados") == it.bought) && it.name.contains(query, true) }, key = { it.id }) { item ->
+                        items(sectionItems.filter { (filter == "Todos" || (if (section == 0) filter == "Comprados" else filter == "Já levadas") == it.bought) && it.name.contains(query, true) }, key = { it.id }) { item ->
                             Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFEFA)), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), modifier = Modifier.fillMaxWidth().clickable { editing = item; showAdd = true }) {
                                 Row(Modifier.padding(horizontal = 8.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Checkbox(checked = item.bought, onCheckedChange = { checked -> persist(materials.map { if (it.id == item.id) it.copy(bought = checked) else it }) })
