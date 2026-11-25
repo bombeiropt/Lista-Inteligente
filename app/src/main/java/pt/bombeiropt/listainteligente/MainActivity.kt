@@ -14,6 +14,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -159,10 +161,13 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                 FloatingActionButton(onClick = { editing = null; showAdd = true }, containerColor = Color(0xFF315B46), contentColor = Color.White) { Icon(Icons.Default.Add, if (section == 0) "Adicionar material" else "Adicionar ferramenta") }
             }
         }) { padding ->
-            Column(
-                Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Box(Modifier.padding(padding).fillMaxSize()) {
+                AsyncImage(model = "https://images.unsplash.com/photo-1759922378219-1d31edb644f4?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=75&w=1200", contentDescription = "Obra em construção", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.78f)))
+                Column(
+                    Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 Spacer(Modifier.height(2.dp))
                 Box(Modifier.fillMaxWidth().height(88.dp)) {
                     Canvas(Modifier.fillMaxSize()) {
@@ -248,6 +253,7 @@ fun ListaApp(onSpeak: (String) -> Unit) {
                             }
                         }
                     }
+                }
                 }
             }
         }
